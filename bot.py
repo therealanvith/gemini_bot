@@ -1,7 +1,6 @@
 import discord
 import random
 import requests
-import asyncio
 from discord.ext import commands
 
 # --- CONFIGURATION ---
@@ -59,11 +58,6 @@ async def fetch_referenced_message(message: discord.Message) -> discord.Message:
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
-    
-    # Run the bot for 5 hours and then stop it
-    await asyncio.sleep(3600 * 5)  # Sleep for 5 hours
-    print("Shutting down the bot after 5 hours...")
-    await bot.close()  # This will close the bot after 5 hours
 
 @bot.event
 async def on_message(message):
