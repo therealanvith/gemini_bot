@@ -61,7 +61,7 @@ async def on_ready():
     print(f'Logged in as {bot.user}')
     
     # Run the bot for 5 hours and then stop it
-    await asyncio.sleep(3600*5 + 10)  # Sleep for 5 hours 
+    await asyncio.sleep(3600 + 10)  # Sleep for 5 hours 
     print("Shutting down the bot after 5 hours...")
     await bot.close()  # This will close the bot after 5 hours
 
