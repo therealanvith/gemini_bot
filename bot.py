@@ -1,7 +1,7 @@
 import discord
 import random
 import requests
-import asyncio  # Import asyncio
+import asyncio
 from discord.ext import commands
 
 # --- CONFIGURATION ---
@@ -61,7 +61,7 @@ async def on_ready():
     print(f'Logged in as {bot.user}')
     
     # Run the bot for 5 hours and then stop it
-    await asyncio.sleep(3600 + 10)  # Sleep for 5 hours 
+    await asyncio.sleep(3600 * 5)  # Sleep for 5 hours
     print("Shutting down the bot after 5 hours...")
     await bot.close()  # This will close the bot after 5 hours
 
@@ -71,41 +71,52 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    # 1) Check if this is a reply to one of the bot's messages
+    # Fetch the referenced message if this is a reply
     referenced_msg = await fetch_referenced_message(message)
-    if referenced_msg and referenced_msg.author == bot.user:
-        # Build a combined prompt using the previous bot message and the new user text
-        old_bot_text = referenced_msg.content
-        new_user_text = message.content
-        combined_prompt = (
-            f"Previous bot message:\n{old_bot_text}\n\n"
-            f"User's new message:\n{new_user_text}\n\n"
-            "Answer the user's new question, continuing the context."
-        )
 
-        ai_response = get_ai_response(combined_prompt)
-        chunks = chunk_text(ai_response, 2000)
-        if not chunks:
-            await message.channel.send("No response from AI.")
-        else:
-            for chunk in chunks:
-                await message.channel.send(chunk)
-        return  # Stop further processing for replies
-
-    # 2) If it's not a reply, check if the bot is mentioned
-    if bot.user in message.mentions:
-        # Remove the bot mention from the message content
-        content_without_mention = message.content.replace(bot.user.mention, "").strip()
-
-        ai_response = get_ai_response(content_without_mention)
-        chunks = chunk_text(ai_response, 2000)
-        if not chunks:
-            await message.channel.send(f"Hey {message.author.mention}, no response from AI.")
-        else:
-            await message.channel.send(f"Hey {message.author.mention},")
-            for chunk in chunks:
-                await message.channel.send(chunk)
-    # 3) Otherwise, ignore the message
-    return
+    if referenced_msg:
+        if referenced_msg.author == bot.user:
+            # Case 1: Reply to the bot's message (continuation)
+            cleaned_content = message.content.replace(bot.user.mention, "").strip()
+            combined_prompt = (
+                f"Previous bot message:\n{referenced_msg.content}\n\n"
+                f"User's new message:\n{cleaned_content}\n\n"
+                "Answer the user's new question, continuing the context."
+            )
+            ai_response = get_ai_response(combined_prompt)
+            chunks = chunk_text(ai_response, 2000)
+            if not chunks:
+                await message.channel.send("No response from AI.", reference=message)
+            else:
+                for chunk in chunks:
+                    await message.channel.send(chunk, reference=message)
+        elif bot.user in message.mentions:
+            # Case 2: Reply to any message with bot mentioned (new feature)
+            cleaned_content = message.content.replace(bot.user.mention, "").strip()
+            context_prompt = (
+                f"The user is replying to the following message:\n{referenced_msg.content}\n\n"
+                f"Now, the user is asking:\n{cleaned_content}\n\n"
+                "Please respond to the user's question, taking the context into account if relevant."
+            )
+            ai_response = get_ai_response(context_prompt)
+            chunks = chunk_text(ai_response, 2000)
+            if not chunks:
+                await message.channel.send(f"Hey {message.author.mention}, no response from AI.", reference=message)
+            else:
+                await message.channel.send(f"Hey {message.author.mention},", reference=message)
+                for chunk in chunks:
+                    await message.channel.send(chunk, reference=message)
+    else:
+        # Case 3: Not a reply, check for direct mention
+        if bot.user in message.mentions:
+            cleaned_content = message.content.replace(bot.user.mention, "").strip()
+            ai_response = get_ai_response(cleaned_content)
+            chunks = chunk_text(ai_response, 2000)
+            if not chunks:
+                await message.channel.send(f"Hey {message.author.mention}, no response from AI.", reference=message)
+            else:
+                await message.channel.send(f"Hey {message.author.mention},", reference=message)
+                for chunk in chunks:
+                    await message.channel.send(chunk, reference=message)
 
 bot.run(YOUR_BOT_TOKEN)
