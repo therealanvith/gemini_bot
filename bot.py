@@ -6,23 +6,14 @@ from discord.ext import commands
 
 # --- CONFIGURATION ---
 YOUR_USER_ID = 1208069980076118016  # Your Discord User ID
-YOUR_API_KEY = 'AIzaSyDVf6PFqLxnl0ShFokVA-cGxAZtw6fcpj0'       # Replace with your actual AI API key
+YOUR_API_KEY = 'AIzaSyDVf6PFqLxnl0ShFokVA-cGxAZtw6fcpj0'  # Replace with your actual AI API key
 API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyDVf6PFqLxnl0ShFokVA-cGxAZtw6fcpj0'
-YOUR_BOT_TOKEN = 'MTM0MzQzODgxNTI3MTk3NzAyMA.GIJMnA.aqRJ_vgTmzUWuXIWWw4VRhFjnFpZ-fWVjAB73A'   # Replace with your actual Discord Bot Token
+YOUR_BOT_TOKEN = 'MTM0MzQzODgxNTI3MTk3NzAyMA.GIJMnA.aqRJ_vgTmzUWuXIWWw4VRhFjnFpZ-fWVjAB73A'  # Replace with your actual Discord Bot Token
 
 # --- BOT SETUP ---
 intents = discord.Intents.default()
 intents.message_content = True  # Needed to listen to message content
 bot = commands.Bot(command_prefix="!", intents=intents)
-
-# --- RICKROLL RESPONSES ---
-rickroll_responses = [
-    "Never gonna give you up, never gonna let you down! 🎶 [You got rickrolled!](https://www.youtube.com/watch?v=dQw4w9WgXcQ)",
-    "Oops, you did it again! 😎 [Here's your rickroll](https://www.youtube.com/watch?v=dQw4w9WgXcQ).",
-    "Congratulations! You've been rickrolled! 🎉 [Watch this!](https://www.youtube.com/watch?v=dQw4w9WgXcQ)",
-    "Haha, gotcha! 🎶 [Rickroll alert](https://www.youtube.com/watch?v=dQw4w9WgXcQ)! Enjoy the song!",
-    "I just wanted to tell you, you're never gonna get this rickroll out of your head! 🎤 [Here's the link](https://www.youtube.com/watch?v=dQw4w9WgXcQ)"
-]
 
 # --- HELPER FUNCTIONS ---
 def chunk_text(text, max_length=2000):
@@ -69,10 +60,10 @@ async def fetch_referenced_message(message: discord.Message) -> discord.Message:
 async def on_ready():
     print(f'Logged in as {bot.user}')
     
-    # Run the bot for 1 hour and then stop it
-    await asyncio.sleep(3600*5 + 10)  # Sleep for 5 hour 
-    print("Shutting down the bot after 1 hour...")
-    await bot.close()  # This will close the bot after 1 hour
+    # Run the bot for 5 hours and then stop it
+    await asyncio.sleep(3600*5 + 10)  # Sleep for 5 hours 
+    print("Shutting down the bot after 5 hours...")
+    await bot.close()  # This will close the bot after 5 hours
 
 @bot.event
 async def on_message(message):
@@ -92,20 +83,13 @@ async def on_message(message):
             "Answer the user's new question, continuing the context."
         )
 
-        # If the message is from you, get an AI response; otherwise, rickroll.
-        if message.author.id == YOUR_USER_ID:
-            ai_response = get_ai_response(combined_prompt)
-            chunks = chunk_text(ai_response, 2000)
-            if not chunks:
-                await message.channel.send("No response from AI.")
-            else:
-                # Send all chunks without a greeting (as requested for replies)
-                for chunk in chunks:
-                    await message.channel.send(chunk)
+        ai_response = get_ai_response(combined_prompt)
+        chunks = chunk_text(ai_response, 2000)
+        if not chunks:
+            await message.channel.send("No response from AI.")
         else:
-            # For non-owner replies, simply rickroll without the greeting
-            rickroll = random.choice(rickroll_responses)
-            await message.channel.send(rickroll)
+            for chunk in chunks:
+                await message.channel.send(chunk)
         return  # Stop further processing for replies
 
     # 2) If it's not a reply, check if the bot is mentioned
@@ -113,18 +97,14 @@ async def on_message(message):
         # Remove the bot mention from the message content
         content_without_mention = message.content.replace(bot.user.mention, "").strip()
 
-        if message.author.id == YOUR_USER_ID:
-            ai_response = get_ai_response(content_without_mention)
-            chunks = chunk_text(ai_response, 2000)
-            if not chunks:
-                await message.channel.send(f"Hey {message.author.mention}, no response from AI.")
-            else:
-                await message.channel.send(f"Hey {message.author.mention},")
-                for chunk in chunks:
-                    await message.channel.send(chunk)
+        ai_response = get_ai_response(content_without_mention)
+        chunks = chunk_text(ai_response, 2000)
+        if not chunks:
+            await message.channel.send(f"Hey {message.author.mention}, no response from AI.")
         else:
-            rickroll = random.choice(rickroll_responses)
-            await message.channel.send(f"Hey {message.author.mention}, {rickroll}")
+            await message.channel.send(f"Hey {message.author.mention},")
+            for chunk in chunks:
+                await message.channel.send(chunk)
     # 3) Otherwise, ignore the message
     return
 
