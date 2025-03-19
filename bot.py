@@ -6,7 +6,6 @@ from discord.ext import commands
 
 
 # --- CONFIGURATION ---
-YOUR_USER_ID = 1208069980076118016  # Your Discord User ID
 YOUR_API_KEY = os.getenv('API_KEY')  # Replace with your actual AI API key
 API_URL = os.getenv('API_URL')
 YOUR_BOT_TOKEN = os.getenv('BOT_TOKEN')  # Replace with your actual Discord Bot Token
