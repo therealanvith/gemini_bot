@@ -6,22 +6,22 @@ on:
       - main
   schedule:
     - cron: '0 * * * *'  # Runs every hour on the hour
+  workflow_dispatch:  # Optional: allows manual runs
 
 jobs:
   bot:
     runs-on: ubuntu-latest
-    
-    # Concurrency settings
+
     concurrency:
       group: discord-bot
       cancel-in-progress: true
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
@@ -32,7 +32,7 @@ jobs:
 
       - name: Run Discord bot
         env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}  # Pass BOT_TOKEN from GitHub secrets
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           API_KEY: ${{ secrets.API_KEY }}
           API_URL: ${{ secrets.API_URL }}
         run: |
