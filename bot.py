@@ -62,7 +62,6 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    # Ignore messages sent by the bot itself
     if message.author == bot.user:
         return
 
